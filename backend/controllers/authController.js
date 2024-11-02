@@ -7,13 +7,13 @@ export const signup = async (req, res) => {
 		const { fullName, username, password, confirmPassword, gender } = req.body;
 
 		if (password !== confirmPassword) {
-			return res.status(400).json({ message: "Passwords do not match" });
+			return res.status(400).json({ error: "Passwords do not match" });
 		}
 
 		const user = await User.findOne({ username });
 
 		if (user) {
-			return res.status(400).json({ message: "User already exists" });
+			return res.status(400).json({ error: "User already exists" });
 		}
 
 		const salt = await bcrypt.genSalt(10);
@@ -42,7 +42,7 @@ export const signup = async (req, res) => {
 				profilePic: newUser.profilePic,
 			});
 		} else {
-			res.status(400).json({ message: "Invalid user data" });
+			res.status(400).json({ error: "Invalid user data" });
 		}
 	} catch (error) {
 		console.error("Error in signup controller", error.message);
@@ -57,7 +57,7 @@ export const login = async (req, res) => {
 		const isPasswordCorrect = user && (await bcrypt.compare(password, user.password));
 
 		if (!isPasswordCorrect) {
-			return res.status(400).json({ message: "Invalid username or password" });
+			return res.status(400).json({ error: "Invalid username or password" });
 		}
 
 		generateTokenAndSetCookie(user._id, res);
