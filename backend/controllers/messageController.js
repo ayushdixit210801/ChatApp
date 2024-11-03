@@ -1,5 +1,7 @@
+import { isObjectIdOrHexString } from "mongoose";
 import Conversation from "../models/conversationModel.js";
 import Message from "../models/messageModel.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 
 export const sendMessage = async (req, res) => {
 	try {
@@ -28,10 +30,15 @@ export const sendMessage = async (req, res) => {
 			conversation.messages.push(newMessage._id);
 		}
 
-		//SOCKET.IO FUNCTIONALITY WILL BE ADDED HERE
-
 		// Save the new message and the updated conversation parallelly
 		await Promise.all([newMessage.save(), conversation.save()]);
+
+		//SOCKET.IO FUNCTIONALITY WILL BE ADDED HERE
+		const receiverSocketId = getReceiverSocketId(receiverId);
+		if (receiverSocketId) {
+			//io.to(<>socket.io).emit() is used to send events to a specific client
+			io.to(receiverSocketId).emit("newMessage", newMessage);
+		}
 
 		res.status(201).json(newMessage);
 	} catch (error) {
